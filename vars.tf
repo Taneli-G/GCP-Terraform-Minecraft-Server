@@ -7,13 +7,13 @@ variable "mineservu_project_id" {
 variable "mineservu_region" {
     type = string
     description = "Region millä pyörittää mineservua"
-    default = "europe-north2"
+    default = "europe-north1"
 }
 
 variable "mineservu_zone" {
     type = string
     description = "Zone millä pyörittää mineservua"
-    default = "europe-north2-a"
+    default = "europe-north1-a"
 }
 
 variable "tf_state_bucket_name" {
