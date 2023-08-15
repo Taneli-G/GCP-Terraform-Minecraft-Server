@@ -64,14 +64,11 @@ resource "google_compute_instance" "minecraft-server-instance" {
   tags = ["container-vm-example"]
 
   labels = {
-    # Required label key.
     container-vm = module.gce-container.vm_container_label
   }
 
    service_account {
     email   = var.service_account_email
-    # List copied from default scope.
-    # https://cloud.google.com/sdk/gcloud/reference/alpha/compute/instances/set-scopes#--scopes
     scopes  = [
       "https://www.googleapis.com/auth/devstorage.read_only",
       "https://www.googleapis.com/auth/logging.write",
@@ -91,14 +88,12 @@ resource "google_compute_address" "mc-server-static-ip" {
   network_tier  = "PREMIUM"
 }
 
-# Create a network
 resource "google_compute_network" "mc-ipv6net" {
   provider                = google
   name                    = "mc-ipv6net"
   auto_create_subnetworks = false
 }
 
-# Create a subnet with IPv6 capabilities
 resource "google_compute_subnetwork" "mc-ipv6subnet" {
   provider          = google
   name              = "ipv6subnet"
@@ -107,7 +102,7 @@ resource "google_compute_subnetwork" "mc-ipv6subnet" {
   stack_type        = "IPV4_IPV6"
   ipv6_access_type  = "EXTERNAL"
 }
-# Allow SSH from all IPs (insecure, but ok for this tutorial)
+
 resource "google_compute_firewall" "mc-firewall" {
   provider  = google
   name      = "firewall"
