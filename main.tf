@@ -30,10 +30,10 @@ resource "google_artifact_registry_repository" "mineservu-repo" {
 
 resource "google_compute_disk" "mc-persistence-disk" {
   project = var.mineservu_project_id
-  name    = "mc-data-disk"
+  name    = var.mc_disk_name
   type    = "pd-ssd"
   zone    = var.mineservu_zone
-  size    = 50
+  size    = 25
 }
 
 resource "google_compute_instance" "minecraft-server-instance" {
@@ -136,7 +136,33 @@ module "gce-container" {
       {
         name  = "EULA"
         value = "TRUE"
+      },
+      {
+        name  = "MEMORY"
+        value = "3G"
+      },
+      { 
+        name  = "SERVER_NAME"
+        value = "GCP Kerho"
+      }
+    ]
+    volumeMounts = [
+      {
+        mountPath = "/data"
+        name      = "data-disk-0"
+        readOnly  = false
       }
     ]
   }
+
+  volumes = [
+    {
+      name = "data-disk-0"
+
+      gcePersistentDisk = {
+        pdName = "data-disk-0"
+        fsType = "ext4"
+      }
+    }
+  ]
 }

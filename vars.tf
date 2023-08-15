@@ -32,3 +32,9 @@ variable "service_account_email" {
     type = string
     description = "GCP Porjektin Service account sähköposti"
 }
+
+variable "mc_disk_name" {
+    type = string
+    description = "Minecraft serverin levyn nimi"
+    default = "mc-data-disk"
+}
