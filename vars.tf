@@ -27,3 +27,8 @@ variable "tf_state_bucket_location" {
     description = "Terraform statefilen bucketin sijainti"
     default = "EUROPE-NORTH1"
 }
+
+variable "service_account_email" {
+    type = string
+    description = "GCP Porjektin Service account sähköposti"
+}
