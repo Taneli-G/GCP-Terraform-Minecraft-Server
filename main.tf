@@ -13,6 +13,7 @@ provider "google" {
   zone    = var.mineservu_zone
 }
 
+# Virtual artifact registry to access Docker Hub
 resource "google_artifact_registry_repository" "mineservu-repo" {
   location      = var.mineservu_region
   repository_id = "${var.mineservu_project_id}-repository"
@@ -28,6 +29,7 @@ resource "google_artifact_registry_repository" "mineservu-repo" {
   }
 }
 
+# Persistent data disk for minecraft server data
 resource "google_compute_disk" "mc-persistence-disk" {
   project = var.mineservu_project_id
   name    = var.mc_disk_name
@@ -36,13 +38,15 @@ resource "google_compute_disk" "mc-persistence-disk" {
   size    = 25
 }
 
+# The Container optimized VM for Minecraft server.
+# Starts Minecraft server Docker container on server startup.
 resource "google_compute_instance" "minecraft-server-instance" {
   provider      = google
   name          = "minecraft-server"
   machine_type  = "e2-medium"
 
   metadata = {
-    ssh-keys = "tanelig:${file("~/.ssh/id_rsa.pub")}"
+    ssh-keys                  = "tanelig:${file("~/.ssh/id_rsa.pub")}"
     gce-container-declaration = module.gce-container.metadata_value
     google-logging-enabled    = "true"
     google-monitoring-enabled = "true"
@@ -70,7 +74,7 @@ resource "google_compute_instance" "minecraft-server-instance" {
   }
 
   allow_stopping_for_update = true
-  tags = ["container-vm-example"]
+  tags = ["container-vm-minecraft-server"]
 
   labels = {
     container-vm = module.gce-container.vm_container_label
@@ -90,18 +94,21 @@ resource "google_compute_instance" "minecraft-server-instance" {
   }
 }
 
+# Static IP for Minecraft server
 resource "google_compute_address" "mc-server-static-ip" {
   provider      = google
   name          = "static-ip"
   address_type  = "EXTERNAL"
 }
 
+# Network for Minecraft server
 resource "google_compute_network" "mc-ipv4net" {
   provider                = google
   name                    = "mc-ipv4net"
   auto_create_subnetworks = false
 }
 
+# Subnet for Minecraft server
 resource "google_compute_subnetwork" "mc-ipv4subnet" {
   provider          = google
   name              = "mc-ipv4subnet"
@@ -110,6 +117,7 @@ resource "google_compute_subnetwork" "mc-ipv4subnet" {
   stack_type        = "IPV4_ONLY"
 }
 
+# Firewall and rules for Minecraft server
 resource "google_compute_firewall" "mc-firewall" {
   provider  = google
   name      = "mc-firewall"
@@ -126,6 +134,7 @@ resource "google_compute_firewall" "mc-firewall" {
   }
 }
 
+# Metadata creation for Container-Optimized VM. Define Minecraft Server Docker image and mounts.
 module "gce-container" {
   source  = "terraform-google-modules/container-vm/google"
   version = "~> 2.0"

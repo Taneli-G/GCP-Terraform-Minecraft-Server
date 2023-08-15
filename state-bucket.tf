@@ -1,3 +1,4 @@
+# Bucket for terraform state file
 resource "google_storage_bucket" "default" {
   name                        = var.tf_state_bucket_name
   force_destroy               = false
