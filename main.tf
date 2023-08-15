@@ -28,6 +28,14 @@ resource "google_artifact_registry_repository" "mineservu-repo" {
   }
 }
 
+resource "google_compute_disk" "mc-persistence-disk" {
+  project = var.mineservu_project_id
+  name    = "mc-data-disk"
+  type    = "pd-ssd"
+  zone    = var.mineservu_zone
+  size    = 50
+}
+
 resource "google_compute_instance" "minecraft-server-instance" {
   provider      = google
   name          = "minecraft-server"
@@ -41,16 +49,11 @@ resource "google_compute_instance" "minecraft-server-instance" {
   }
 
   network_interface {
-    network     = google_compute_network.mc-ipv6net.id
-    subnetwork  = google_compute_subnetwork.mc-ipv6subnet.id
-    stack_type  = "IPV4_IPV6"
+    network     = google_compute_network.mc-ipv4net.id
+    subnetwork  = google_compute_subnetwork.mc-ipv4subnet.id
+    stack_type  = "IPV4_ONLY"
     access_config {
       nat_ip        = google_compute_address.mc-server-static-ip.address
-      network_tier  = "PREMIUM"
-    }
-
-    ipv6_access_config {
-      network_tier  = "PREMIUM"
     }
   }
 
@@ -58,6 +61,12 @@ resource "google_compute_instance" "minecraft-server-instance" {
     initialize_params {
       image = module.gce-container.source_image
     }
+  }
+
+  attached_disk {
+    source      = google_compute_disk.mc-persistence-disk.self_link
+    device_name = "data-disk-0"
+    mode        = "READ_WRITE"
   }
 
   allow_stopping_for_update = true
@@ -85,28 +94,26 @@ resource "google_compute_address" "mc-server-static-ip" {
   provider      = google
   name          = "static-ip"
   address_type  = "EXTERNAL"
-  network_tier  = "PREMIUM"
 }
 
-resource "google_compute_network" "mc-ipv6net" {
+resource "google_compute_network" "mc-ipv4net" {
   provider                = google
-  name                    = "mc-ipv6net"
+  name                    = "mc-ipv4net"
   auto_create_subnetworks = false
 }
 
-resource "google_compute_subnetwork" "mc-ipv6subnet" {
+resource "google_compute_subnetwork" "mc-ipv4subnet" {
   provider          = google
-  name              = "ipv6subnet"
-  network           = google_compute_network.mc-ipv6net.id
+  name              = "mc-ipv4subnet"
+  network           = google_compute_network.mc-ipv4net.id
   ip_cidr_range     = "10.0.0.0/8"
-  stack_type        = "IPV4_IPV6"
-  ipv6_access_type  = "EXTERNAL"
+  stack_type        = "IPV4_ONLY"
 }
 
 resource "google_compute_firewall" "mc-firewall" {
   provider  = google
-  name      = "firewall"
-  network   = google_compute_network.mc-ipv6net.name
+  name      = "mc-firewall"
+  network   = google_compute_network.mc-ipv4net.name
 
   allow {
     protocol = "icmp"
