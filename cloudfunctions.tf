@@ -26,7 +26,7 @@ resource "google_storage_bucket_object" "object_start_stop" {
 # Cloud function to start the minecraft server
 resource "google_cloudfunctions2_function" "default_start" {
   name        = "function-start-minecraft-server"
-  location    = var.mineservu_region
+  location    = var.region
   description = "Start minecraft server"
 
   build_config {
@@ -60,7 +60,7 @@ resource "google_cloud_run_service_iam_binding" "invoker_start" {
 # Cloud function to stop the server
 resource "google_cloudfunctions2_function" "default_stop" {
   name        = "function-stop-minecraft-server"
-  location    = var.mineservu_region
+  location    = var.region
   description = "Stop minecraft server"
 
   build_config {

@@ -8,15 +8,15 @@ terraform {
 }
 
 provider "google" {
-  project = var.mineservu_project_id
-  region  = var.mineservu_region
-  zone    = var.mineservu_zone
+  project = var.project_id
+  region  = var.region
+  zone    = var.zone
 }
 
 # Virtual artifact registry to access Docker Hub
 resource "google_artifact_registry_repository" "mc_main" {
-  location      = var.mineservu_region
-  repository_id = "${var.mineservu_project_id}-repository"
+  location      = var.region
+  repository_id = "${var.project_id}-repository"
   description   = "Docker Hub remote repositorio"
   format        = "DOCKER"
   mode          = "REMOTE_REPOSITORY"
@@ -31,10 +31,10 @@ resource "google_artifact_registry_repository" "mc_main" {
 
 # Persistent data disk for minecraft server data
 resource "google_compute_disk" "mc_main" {
-  project = var.mineservu_project_id
+  project = var.project_id
   name    = var.mc_disk_name
   type    = "pd-ssd"
-  zone    = var.mineservu_zone
+  zone    = var.zone
   size    = 25
 }
 
@@ -46,7 +46,6 @@ resource "google_compute_instance" "mc_main" {
   machine_type = "e2-medium"
 
   metadata = {
-    ssh-keys                  = "tanelig:${file("~/.ssh/id_rsa.pub")}"
     gce-container-declaration = module.gce-container.metadata_value
     google-logging-enabled    = "true"
     google-monitoring-enabled = "true"
@@ -97,7 +96,7 @@ resource "google_compute_instance" "mc_main" {
 # Static IP for Minecraft server
 resource "google_compute_address" "mc_ip" {
   provider     = google
-  name         = "static-ip"
+  name         = "mc-static-ip"
   address_type = "EXTERNAL"
 }
 
@@ -123,14 +122,10 @@ resource "google_compute_firewall" "mc_main" {
   name     = "mc-firewall"
   network  = google_compute_network.mc_main.name
 
-  allow {
-    protocol = "icmp"
-  }
-
   source_ranges = ["0.0.0.0/0"]
   allow {
     protocol = "tcp"
-    ports    = ["22", "25565"]
+    ports    = ["25565"]
   }
 }
 
@@ -152,7 +147,7 @@ module "gce-container" {
       },
       {
         name  = "SERVER_NAME"
-        value = "GCP Kerho"
+        value = "Your-server-name"
       }
     ]
     volumeMounts = [
