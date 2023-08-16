@@ -28,6 +28,12 @@ variable "tf_state_bucket_location" {
   default     = "EUROPE-NORTH1"
 }
 
+variable "cloudfunctions_bucket_location" {
+  type        = string
+  description = "Cloud functions sourcefilujen bucketin sijainti"
+  default     = "EUROPE-NORTH1"
+}
+
 variable "service_account_email" {
   type        = string
   description = "GCP Porjektin Service account sähköposti"
